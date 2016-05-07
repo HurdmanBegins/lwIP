@@ -11,6 +11,7 @@
 #include "lwip/sys.h"
 #include "lwip/arch.h"
 #include "lwip/sio.h"
+#include "netif/ppp/ppp_opts.h"
 
 /* Following #undefs are here to keep compiler from issuing warnings
    about them being double defined. (They are defined in lwip/inet.h
@@ -139,17 +140,31 @@ static int sio_init( char * device, int devnum, sio_status_t * siostat )
 	sigaction( SIGIO,&saio,NULL );
 
 	/* allow the process to receive SIGIO */
-	fcntl( fd, F_SETOWN, getpid( ) );
+       	if ( fcntl( fd, F_SETOWN, getpid( ) ) != 0)
+	{
+		perror( device );
+		exit( -1 );
+	}
 	/* Make the file descriptor asynchronous (the manual page says only
 	O_APPEND and O_NONBLOCK, will work with F_SETFL...) */
-	fcntl( fd, F_SETFL, FASYNC );
+       	if ( fcntl( fd, F_SETFL, FASYNC ) != 0)
+	{
+		perror( device );
+		exit( -1 );
+	}
 #else
-	fcntl( fd, F_SETFL, 0 );
+       	if ( fcntl( fd, F_SETFL, 0 ) != 0)
+	{
+		perror( device );
+		exit( -1 );
+	}
+
 #endif /* ! (PPP_SUPPORT || LWIP_HAVE_SLIPIF) */
 
 	tcgetattr( fd,&oldtio ); /* save current port settings */
 	/* set new port settings */
 	/* see 'man termios' for further settings */
+        memset(&newtio, 0, sizeof(newtio));
 	newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD | CRTSCTS;
 	newtio.c_iflag = 0;
 	newtio.c_oflag = 0;
@@ -183,6 +198,7 @@ static void sio_speed( int fd, int speed )
 
 	/* set new port settings 
 	* see 'man termios' for further settings */
+        memset(&newtio, 0, sizeof(newtio));
 	newtio.c_cflag = speed | CS8 | CLOCAL | CREAD; /* | CRTSCTS; */
 	newtio.c_iflag = 0;
 	newtio.c_oflag = 0;

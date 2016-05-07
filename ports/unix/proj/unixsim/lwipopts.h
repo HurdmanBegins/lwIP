@@ -78,7 +78,10 @@ extern unsigned char debug_flags;
 #define NO_SYS                     0
 #define LWIP_SOCKET                (NO_SYS==0)
 #define LWIP_NETCONN               (NO_SYS==0)
-
+#define SO_REUSE                   1
+#define IP_SOF_BROADCAST_RECV      1
+#define IP_SOF_BROADCAST           1
+#define SO_REUSE_RXTOALL           1
 
 /* ---------- Memory options ---------- */
 /* MEM_ALIGNMENT: should be set to the alignment of the CPU for which
@@ -143,11 +146,15 @@ a lot of data that needs to be copied, this should be set high. */
  * for certain critical regions during buffer allocation, deallocation and memory
  * allocation and deallocation.
  */
-#define SYS_LIGHTWEIGHT_PROT           1
+#define SYS_LIGHTWEIGHT_PROT    1
+
+#define LWIP_TCPIP_TIMEOUT      1
 
 /* ---------- TCP options ---------- */
 #define LWIP_TCP                1
 #define TCP_TTL                 255
+
+#define TCP_LISTEN_BACKLOG      1
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */
@@ -256,6 +263,9 @@ extern void sntp_set_system_time(u32_t sec);
 /* Maximum packet size that is received by this netif */
 #define SLIP_MAX_SIZE     1500
 #define sio_tryread sio_read
+
+/* ---------- 6LoWPAN options ---------- */
+#define LWIP_6LOWPAN      1
 
 /* ---------- PPP options ---------- */
 

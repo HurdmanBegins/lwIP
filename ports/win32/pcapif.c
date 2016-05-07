@@ -562,7 +562,7 @@ pcapif_input_thread(void *arg)
 static void
 pcapif_low_level_init(struct netif *netif)
 {
-  u8_t my_mac_addr[ETHARP_HWADDR_LEN] = LWIP_MAC_ADDR_BASE;
+  u8_t my_mac_addr[ETH_HWADDR_LEN] = LWIP_MAC_ADDR_BASE;
   int adapter_num = PACKET_LIB_ADAPTER_NR;
   struct pcapif_private *pa;
 #ifdef PACKET_LIB_GET_ADAPTER_NETADDRESS
@@ -622,9 +622,9 @@ pcapif_low_level_init(struct netif *netif)
   /* change the MAC address to a unique value
      so that multiple ethernetifs are supported */
   /* @todo: this does NOT support multiple processes using this adapter! */
-  my_mac_addr[ETHARP_HWADDR_LEN - 1] += netif->num;
+  my_mac_addr[ETH_HWADDR_LEN - 1] += netif->num;
   /* Copy MAC addr */
-  memcpy(&netif->hwaddr, my_mac_addr, ETHARP_HWADDR_LEN);
+  memcpy(&netif->hwaddr, my_mac_addr, ETH_HWADDR_LEN);
 
   /* get the initial link state of the selected interface */
 #if PCAPIF_HANDLE_LINKSTATE
@@ -674,7 +674,7 @@ pcapif_low_level_output(struct netif *netif, struct pbuf *p)
     if (p->tot_len >= sizeof(buffer)) {
       LINK_STATS_INC(link.lenerr);
       LINK_STATS_INC(link.drop);
-      snmp_inc_ifoutdiscards(netif);
+      MIB2_STATS_NETIF_INC(netif, ifoutdiscards);
       return ERR_BUF;
     }
     ptr = buffer;
@@ -704,19 +704,19 @@ pcapif_low_level_output(struct netif *netif, struct pbuf *p)
   if (pcap_sendpacket(pa->adapter, buf, tot_len) < 0) {
     LINK_STATS_INC(link.memerr);
     LINK_STATS_INC(link.drop);
-    snmp_inc_ifoutdiscards(netif);
+    MIB2_STATS_NETIF_INC(netif, ifoutdiscards);
     return ERR_BUF;
   }
 
   LINK_STATS_INC(link.xmit);
-  snmp_add_ifoutoctets(netif, tot_len);
+  MIB2_STATS_NETIF_ADD(netif, ifoutoctets, tot_len);
   ethhdr = (struct eth_hdr *)p->payload;
   if ((ethhdr->dest.addr[0] & 1) != 0) {
     /* broadcast or multicast packet*/
-    snmp_inc_ifoutnucastpkts(netif);
+    MIB2_STATS_NETIF_INC(netif, ifoutnucastpkts);
   } else {
     /* unicast packet */
-    snmp_inc_ifoutucastpkts(netif);
+    MIB2_STATS_NETIF_INC(netif, ifoutucastpkts);
   }
   return ERR_OK;
 }
@@ -740,7 +740,7 @@ pcapif_low_level_input(struct netif *netif, const void *packet, int packet_len)
 #endif /* PCAPIF_FILTER_GROUP_ADDRESSES && !PCAPIF_RECEIVE_PROMISCUOUS */
 
   /* Don't let feedback packets through (limitation in winpcap?) */
-  if(!memcmp(src, netif->hwaddr, ETHARP_HWADDR_LEN)) {
+  if(!memcmp(src, netif->hwaddr, ETH_HWADDR_LEN)) {
     /* don't update counters here! */
     return NULL;
   }
@@ -748,7 +748,7 @@ pcapif_low_level_input(struct netif *netif, const void *packet, int packet_len)
   unicast = ((dest->addr[0] & 0x01) == 0);
 #if !PCAPIF_RECEIVE_PROMISCUOUS
   /* MAC filter: only let my MAC or non-unicast through (pcap receives loopback traffic, too) */
-  if (memcmp(dest, &netif->hwaddr, ETHARP_HWADDR_LEN) &&
+  if (memcmp(dest, &netif->hwaddr, ETH_HWADDR_LEN) &&
 #if PCAPIF_FILTER_GROUP_ADDRESSES
     (memcmp(dest, ipv4mcast, 3) || ((dest->addr[3] & 0x80) != 0)) && 
     memcmp(dest, ipv6mcast, 2) &&
@@ -793,16 +793,17 @@ pcapif_low_level_input(struct netif *netif, const void *packet, int packet_len)
       }
     }
     LINK_STATS_INC(link.recv);
-    snmp_add_ifinoctets(netif, p->tot_len);
+    MIB2_STATS_NETIF_ADD(netif, ifinoctets, p->tot_len - ETH_PAD_SIZE);
     if (unicast) {
-      snmp_inc_ifinucastpkts(netif);
+      MIB2_STATS_NETIF_INC(netif, ifinucastpkts);
     } else {
-      snmp_inc_ifinnucastpkts(netif);
+      MIB2_STATS_NETIF_INC(netif, ifinnucastpkts);
     }
   } else {
     /* drop packet */
     LINK_STATS_INC(link.memerr);
     LINK_STATS_INC(link.drop);
+    MIB2_STATS_NETIF_INC(netif, ifindiscards);
   }
 
   return p;
@@ -857,7 +858,7 @@ pcapif_input(u_char *user, const struct pcap_pkthdr *pkt_header, const u_char *p
 
   /* move received packet into a new pbuf */
   p = pcapif_low_level_input(netif, packet, packet_len);
-  /* no packet could be read, silently ignore this */
+  /* if no packet could be read, silently ignore this */
   if (p != NULL) {
 #if PCAPIF_RX_REF
     p = pcapif_rx_ref(p);
@@ -905,7 +906,7 @@ pcapif_init(struct netif *netif)
 
   netif->mtu = 1500;
   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_ETHERNET | NETIF_FLAG_IGMP;
-  netif->hwaddr_len = ETHARP_HWADDR_LEN;
+  netif->hwaddr_len = ETH_HWADDR_LEN;
 
   NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, 100000000);
 

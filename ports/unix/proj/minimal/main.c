@@ -66,7 +66,8 @@
 #include "lwip/apps/snmp_mib2.h"
 
 #include "apps/snmp_private_mib/private_mib.h"
-#include "apps/tcpecho_raw/echo.h"
+#include "apps/udpecho_raw/udpecho_raw.h"
+#include "apps/tcpecho_raw/tcpecho_raw.h"
 
 #include "lwip/tcpip.h"
 
@@ -168,7 +169,10 @@ static void tcpip_init_done(void *arg)
   snmp_init();
 #endif /* LWIP_SNMP */
 
-  echo_init();
+  udpecho_raw_init();
+  tcpecho_raw_init();
+
+  printf("Applications started.\n");
 
   sys_sem_signal(&sem); /* Signal the waiting thread that the TCP/IP init is done. */
 }
@@ -496,8 +500,6 @@ main(int argc, char **argv)
 #endif
   printf("netif2 %d\n", netif2.num);
 #endif
-
-  printf("Applications started.\n");
 
 #if PPP_SUPPORT
 	printf("ppp_pcb sizeof(ppp) = %ld\n", sizeof(ppp_pcb));

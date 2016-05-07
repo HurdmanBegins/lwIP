@@ -102,9 +102,6 @@
     <ClCompile Include="$(LWIP_DIR)\src\api\netifapi.c">
       <Filter>src\api</Filter>
     </ClCompile>
-    <ClCompile Include="$(LWIP_DIR)\src\api\pppapi.c">
-      <Filter>src\api</Filter>
-    </ClCompile>
     <ClCompile Include="$(LWIP_DIR)\src\api\sockets.c">
       <Filter>src\api</Filter>
     </ClCompile>
@@ -219,7 +216,13 @@
     <ClCompile Include="$(LWIP_DIR)\src\netif\etharp.c">
       <Filter>src\netif</Filter>
     </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\netif\ethernet.c">
+      <Filter>src\netif</Filter>
+    </ClCompile>
     <ClCompile Include="$(LWIP_DIR)\src\netif\ethernetif.c">
+      <Filter>src\netif</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\netif\lowpan6.c">
       <Filter>src\netif</Filter>
     </ClCompile>
     <ClCompile Include="$(LWIP_DIR)\src\netif\slipif.c">
@@ -318,9 +321,6 @@
     <ClCompile Include="..\sys_arch.c">
       <Filter>arch</Filter>
     </ClCompile>
-    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_msg.h">
-      <Filter>src\apps\snmp</Filter>
-    </ClCompile>
     <ClCompile Include="$(LWIP_DIR)\src\apps\httpd\httpd.c">
       <Filter>src\apps\httpd</Filter>
     </ClCompile>
@@ -362,6 +362,36 @@
     </ClCompile>
     <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_traps.c">
       <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\core\ip.c">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_icmp.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_interfaces.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_ip.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_snmp.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_system.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_tcp.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmp_mib2_udp.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\apps\snmp\snmpv3.c">
+      <Filter>src\apps\snmp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LWIP_DIR)\src\netif\ppp\pppapi.c">
+      <Filter>src\netif\ppp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -485,9 +515,6 @@
     <ClInclude Include="$(LWIP_DIR)\src\include\lwip\pbuf.h">
       <Filter>src\include\lwip</Filter>
     </ClInclude>
-    <ClInclude Include="$(LWIP_DIR)\src\include\lwip\pppapi.h">
-      <Filter>src\include\lwip</Filter>
-    </ClInclude>
     <ClInclude Include="$(LWIP_DIR)\src\include\lwip\raw.h">
       <Filter>src\include\lwip</Filter>
     </ClInclude>
@@ -519,6 +546,15 @@
       <Filter>src\include\lwip</Filter>
     </ClInclude>
     <ClInclude Include="$(LWIP_DIR)\src\include\netif\etharp.h">
+      <Filter>src\include\netif</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\netif\ethernet.h">
+      <Filter>src\include\netif</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\netif\lowpan6.h">
+      <Filter>src\include\netif</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\netif\lowpan6_opts.h">
       <Filter>src\include\netif</Filter>
     </ClInclude>
     <ClInclude Include="$(LWIP_DIR)\src\include\netif\slipif.h">
@@ -675,6 +711,27 @@
       <Filter>src\include\lwip\apps</Filter>
     </ClInclude>
     <ClInclude Include="$(LWIP_DIR)\src\include\lwip\apps\snmp_threadsync.h">
+      <Filter>src\include\lwip\apps</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\apps\snmp\snmp_msg.h">
+      <Filter>src\apps\snmp</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\apps\snmp\snmpv3.h">
+      <Filter>src\apps\snmp</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\netif\ppp\pppapi.h">
+      <Filter>src\include\netif\ppp</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\lwip\apps\fs.h">
+      <Filter>src\include\lwip\apps</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\lwip\apps\httpd.h">
+      <Filter>src\include\lwip\apps</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\lwip\apps\httpd_opts.h">
+      <Filter>src\include\lwip\apps</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LWIP_DIR)\src\include\lwip\apps\snmpv3.h">
       <Filter>src\include\lwip\apps</Filter>
     </ClInclude>
   </ItemGroup>

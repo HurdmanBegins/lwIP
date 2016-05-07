@@ -31,10 +31,12 @@
 
 # CONTRIBAPPFILES: Contrib Applications.
 CONTRIBAPPFILES=$(CONTRIBDIR)/apps/httpserver/httpserver-netconn.c \
+	$(CONTRIBDIR)/apps/chargen/chargen.c \
 	$(CONTRIBDIR)/apps/udpecho/udpecho.c \
 	$(CONTRIBDIR)/apps/tcpecho/tcpecho.c \
 	$(CONTRIBDIR)/apps/shell/shell.c \
-	$(CONTRIBDIR)/apps/tcpecho_raw/echo.c \
+	$(CONTRIBDIR)/apps/udpecho_raw/udpecho_raw.c \
+	$(CONTRIBDIR)/apps/tcpecho_raw/tcpecho_raw.c \
 	$(CONTRIBDIR)/apps/netio/netio.c \
 	$(CONTRIBDIR)/apps/ping/ping.c \
 	$(CONTRIBDIR)/apps/shell/shell.c \

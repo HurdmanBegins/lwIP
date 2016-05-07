@@ -33,9 +33,11 @@ static err_t netio_accept(void *arg, struct tcp_pcb *pcb, err_t err)
   LWIP_UNUSED_ARG(arg);
   LWIP_UNUSED_ARG(err);
 
-  tcp_arg(pcb, NULL);
-  tcp_sent(pcb, NULL);
-  tcp_recv(pcb, netio_recv);
+  if (pcb != NULL) {
+    tcp_arg(pcb, NULL);
+    tcp_sent(pcb, NULL);
+    tcp_recv(pcb, netio_recv);
+  }
   return ERR_OK;
 }
 
@@ -43,8 +45,8 @@ void netio_init(void)
 {
   struct tcp_pcb *pcb;
 
-  pcb = tcp_new();
-  tcp_bind(pcb, IP_ADDR_ANY, 18767);
+  pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
+  tcp_bind(pcb, IP_ANY_TYPE, 18767);
   pcb = tcp_listen(pcb);
   tcp_accept(pcb, netio_accept);
 }

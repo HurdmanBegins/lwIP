@@ -84,6 +84,8 @@
 #include "apps/udpecho/udpecho.h"
 #include "apps/tcpecho/tcpecho.h"
 #include "apps/shell/shell.h"
+#include "apps/chargen/chargen.h"
+#include "apps/netio/netio.h"
 #include "lwip/apps/netbiosns.h"
 #include "lwip/apps/sntp.h"
 #include "lwip/apps/snmp.h"
@@ -165,18 +167,14 @@ tcp_debug_timeout(void *data)
 void
 sntp_set_system_time(u32_t sec)
 {
+  char buf[32];
   struct tm current_time_val;
   time_t current_time = (time_t)sec;
 
   localtime_r(&current_time, &current_time_val);
   
-  printf("SNTP time: %02"U32_F".%02"U32_F".%04"U32_F" %02"U32_F":%02"U32_F":%02"U32_F"\n",
-    current_time_val.tm_mday,
-    current_time_val.tm_mon  + 1,
-    current_time_val.tm_year + 1900,
-    current_time_val.tm_hour,
-    current_time_val.tm_min,
-    current_time_val.tm_sec);
+  strftime(buf, sizeof(buf), "%d.%m.%Y %H:%M:%S", &current_time_val);
+  printf("SNTP time: %s\n", buf);
 }
 
 static void
@@ -317,7 +315,9 @@ ping_thread(void *arg)
 
 #if LWIP_HAVE_SLIPIF
 /* (manual) host IP configuration */
+#if LWIP_IPV4
 static ip_addr_t ipaddr_slip, netmask_slip, gw_slip;
+#endif /* LWIP_IPV4 */
 struct netif slipif;
 #endif /* LWIP_HAVE_SLIPIF */
 
@@ -545,7 +545,10 @@ init_netifs(void)
   /* Only used for testing purposes: */
   netif_add(&ipaddr, &netmask, &gw, NULL, pcapif_init, tcpip_input);
 #endif
-  
+
+#if LWIP_TCP
+  netio_init();
+#endif
 #if LWIP_TCP && LWIP_NETCONN
   tcpecho_init();
   shell_init();
@@ -554,6 +557,9 @@ init_netifs(void)
 #if LWIP_UDP && LWIP_NETCONN  
   udpecho_init();
 #endif  
+#if LWIP_SOCKET
+  chargen_init();
+#endif
   /*  sys_timeout(5000, tcp_debug_timeout, NULL);*/
 }
 
@@ -637,6 +643,7 @@ main(int argc, char **argv)
         ping_flag = !0;
         ipaddr_aton(optarg, &ping_addr);
         strncpy(ip_str,ipaddr_ntoa(&ping_addr),sizeof(ip_str));
+        ip_str[sizeof(ip_str)-1] = 0; /* ensure \0 termination */
         printf("Using %s to ping\n", ip_str);
         break;
       default:

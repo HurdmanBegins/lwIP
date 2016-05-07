@@ -44,6 +44,8 @@
 
 #include "private_mib.h"
 
+#if LWIP_SNMP
+
 /** Directory where the sensor files are */
 #define SENSORS_DIR           "w:\\sensors"
 /** Set to 1 to read sensor values from files (in directory defined by SENSORS_DIR) */
@@ -131,7 +133,7 @@ static const struct snmp_scalar_node sensor_count = SNMP_SCALAR_CREATE_NODE_READ
   2, SNMP_ASN1_TYPE_INTEGER, sensor_count_get_value); 
 
 /* example .1.3.6.1.4.1.26381.1 */
-static const struct snmp_node* example_nodes[] = {
+static const struct snmp_node* const example_nodes[] = {
   &sensor_table.node.node,
   &sensor_count.node.node
 };
@@ -144,19 +146,19 @@ const struct snmp_mib mib_private = SNMP_MIB_CREATE(prvmib_base_oid, &example_no
 /* for reference: we could also have expressed it like this: */
 
 /* lwip .1.3.6.1.4.1.26381 */
-static const struct snmp_node* lwip_nodes[] = {
+static const struct snmp_node* const lwip_nodes[] = {
   &example_node.node
 };
 static const struct snmp_tree_node lwip_node = SNMP_CREATE_TREE_NODE(26381, lwip_nodes);
 
 /* enterprises .1.3.6.1.4.1 */
-static const struct snmp_node* enterprises_nodes[] = {
+static const struct snmp_node* const enterprises_nodes[] = {
   &lwip_node.node
 };
 static const struct snmp_tree_node enterprises_node = SNMP_CREATE_TREE_NODE(1, enterprises_nodes);
 
 /* private .1.3.6.1.4 */
-static const struct snmp_node* private_nodes[] = {
+static const struct snmp_node* const private_nodes[] = {
   &enterprises_node.node
 };
 static const struct snmp_tree_node private_root = SNMP_CREATE_TREE_NODE(0, private_nodes);
@@ -363,8 +365,8 @@ sensor_table_get_value(struct snmp_node_instance* instance, void* value)
 #endif /* SENSORS_USE_FILES */
     return sizeof(s32_t);
   case 2: /* file name */
-    MEMCPY(value, sensors[i].file, strlen(sensors[i].file));
-    return (u16_t)strlen(sensors[i].file);
+    MEMCPY(value, sensors[i].file, strnlen(sensors[i].file, sizeof(sensors[i].file)));
+    return (u16_t)strnlen(sensors[i].file, sizeof(sensors[i].file));
   default:
     return 0;
   }
@@ -396,3 +398,5 @@ sensor_table_set_value(struct snmp_node_instance* instance, u16_t len, void *val
 
   return SNMP_ERR_NOERROR;
 }
+
+#endif /* LWIP_SNMP */
