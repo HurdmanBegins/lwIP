@@ -56,7 +56,7 @@
 #include "lwip/dns.h"
 #include "netif/tapif.h"
 #include "netif/etharp.h"
-#include "lwip/pppapi.h"
+#include "netif/ppp/pppapi.h"
 #include "lwip/netifapi.h"
 #include "netif/ppp/pppos.h"
 #include "netif/ppp/pppoe.h"
