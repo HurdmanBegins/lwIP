@@ -32,7 +32,7 @@
 #ifndef LWIP_LWIPOPTS_H
 #define LWIP_LWIPOPTS_H
 
-#include "arch/cc.h"
+#include "lwip/arch.h"
 
 #define LWIP_IPV4          1
 #define LWIP_IPV6          1
@@ -289,7 +289,11 @@ extern void sntp_set_system_time(u32_t sec);
 #define MSCHAP_SUPPORT   0      /* Set > 0 for MSCHAP (NOT FUNCTIONAL!) */
 #define CBCP_SUPPORT     0      /* Set > 0 for CBCP (NOT FUNCTIONAL!) */
 #define CCP_SUPPORT      0      /* Set > 0 for CCP (NOT FUNCTIONAL!) */
+#ifdef __clang__
+#define VJ_SUPPORT       0      /* VanJacobsen currently does not compile with CLANG */
+#else
 #define VJ_SUPPORT       1      /* Set > 0 for VJ header compression. */
+#endif
 #define MD5_SUPPORT      1      /* Set > 0 for MD5 (see also CHAP) */
 
 

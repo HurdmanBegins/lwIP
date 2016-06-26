@@ -29,21 +29,25 @@
 # Author: Adam Dunkels <adam@sics.se>
 #
 
-CCDEP=gcc
-CC=gcc
+#CC=gcc
+#CC=clang
+CCDEP?=$(CC)
 
 CFLAGS=-g -Wall -DLWIP_DEBUG -pedantic -Werror \
 	-Wparentheses -Wsequence-point -Wswitch-default \
 	-Wextra -Wundef -Wshadow -Wpointer-arith -Wcast-qual \
 	-Wc++-compat -Wwrite-strings -Wold-style-definition -Wcast-align \
 	-Wmissing-prototypes -Wredundant-decls -Wnested-externs -Wno-address \
-	-Wunreachable-code -Wuninitialized -Wlogical-op
+	-Wunreachable-code -Wuninitialized
+ifneq ($(CC),clang)
+CFLAGS:=$(CFLAGS) -Wlogical-op
+endif
 # not used for now but interesting:
 # -Wpacked
 # -ansi
 # -std=c89
 LDFLAGS=-pthread -lutil -lrt
-CONTRIBDIR=../../../..
+CONTRIBDIR?=../../../..
 LWIPARCH=$(CONTRIBDIR)/ports/unix
 ARFLAGS=rs
 
