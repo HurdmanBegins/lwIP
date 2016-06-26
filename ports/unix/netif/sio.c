@@ -386,6 +386,7 @@ sio_fd_t sio_open(u8_t devnum)
 				"+ipv6",
 #endif
 				"noauth",
+				"usepeerdns",
 				"noipdefault", "show-password",
 				"user", "essai10",
 				NULL);

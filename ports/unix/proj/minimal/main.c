@@ -518,7 +518,7 @@ main(int argc, char **argv)
 	/* pppoe-server skip the first packet while it is forking pppd, wait a little
 	 * before sending the first LCP packet.
 	 */
-	pppoe->settings.listen_time = 100;
+	ppp_set_listen_time(pppoe, 100);
 	pppapi_connect(pppoe, 0);
 #endif
 
@@ -537,7 +537,7 @@ main(int argc, char **argv)
 	pppos = pppapi_pppos_create(&pppsnetif, pppos_out, ppp_link_status_cb, ser);
 	ppp_set_notify_phase_callback(pppos, ppp_notify_phase_cb);
 
-	pppos->settings.listen_time = 100;
+	ppp_set_listen_time(pppos, 100);
 	pppapi_set_auth(pppos, PPPAUTHTYPE_MSCHAP, username2, password2);
 	pppapi_set_default(pppos);
 #if PPP_DEBUG
@@ -545,19 +545,28 @@ main(int argc, char **argv)
 #endif
 #if PPP_SERVER
 	{
-		struct ppp_addrs serveraddrs;
 #if PPP_IPV4_SUPPORT
-		IP4_ADDR(&serveraddrs.our_ipaddr,  192,168,70,1);
-		IP4_ADDR(&serveraddrs.his_ipaddr,  192,168,70,2);
-		IP4_ADDR(&serveraddrs.netmask,     255,255,255,255);
+		ip4_addr_t addr;
+		IP4_ADDR(&addr,  192,168,70,1);
+		ppp_set_ipcp_ouraddr(pppos, &addr);
+		IP4_ADDR(&addr,  192,168,70,2);
+		ppp_set_ipcp_hisaddr(pppos, &addr);
 #if LWIP_DNS
-		IP4_ADDR(&serveraddrs.dns1,        192,168,70,20);
-		IP4_ADDR(&serveraddrs.dns2,        192,168,70,21);
+		IP4_ADDR(&addr,  192,168,70,20);
+		ppp_set_ipcp_dnsaddr(pppos, 0, &addr);
+		IP4_ADDR(&addr,  192,168,70,21);
+		ppp_set_ipcp_dnsaddr(pppos, 1, &addr);
 #endif /* LWIP_DNS */
 #endif /* PPP_IPV4_SUPPORT */
-		pppapi_listen(pppos, &serveraddrs);
+#if PPP_AUTH_SUPPORT
+		ppp_set_auth_required(pppos, 1);
+#endif /* PPP_AUTH_SUPPORT */
+		pppapi_listen(pppos);
 	}
 #else /* PPP_SERVER */
+#if LWIP_DNS
+	ppp_set_usepeerdns(pppos, 1);
+#endif /* LWIP_DNS */
 	pppapi_connect(pppos, 0);
 #endif /* PPP_SERVER */
 #endif /* PPPOS_SUPPORT */
