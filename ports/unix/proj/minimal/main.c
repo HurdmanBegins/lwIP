@@ -320,7 +320,9 @@ static void ppp_link_status_cb(ppp_pcb *pcb, int err_code, void *ctx) {
 		ppp_free(pcb);
 		pcb = pppoe_create(pppif, &netif, NULL, NULL, ppp_link_status_cb, NULL);
 		ppp_set_notify_phase_callback(pcb, ppp_notify_phase_cb);
+#if PPP_AUTH_SUPPORT
 		ppp_set_auth(pcb, PPPAUTHTYPE_EAP, username, password);
+#endif /* PPP_AUTH_SUPPORT */
 		ppp_connect(pcb, 5);
 	}
 #endif
@@ -376,8 +378,10 @@ main(int argc, char **argv)
   sys_sem_t sem;
 #if PPP_SUPPORT
 #if PPPOL2TP_SUPPORT || PPPOS_SUPPORT
+#if PPP_AUTH_SUPPORT
   /* const char *username2 = "essai2", *password2 = "aon0viipheehooX"; */
   const char *username2 = "essai10", *password2 = "essai10pass";
+#endif /* PPP_AUTH_SUPPORT */
 #endif /* PPPOL2TP_SUPPORT || PPPOS_SUPPORT */
 #if PPPOE_SUPPORT
   struct netif pppnetif;
@@ -499,9 +503,11 @@ main(int argc, char **argv)
 	memset(&pppnetif, 0, sizeof(struct netif));
 	pppoe = pppapi_pppoe_create(&pppnetif, &netif, NULL, NULL, ppp_link_status_cb, NULL);
 	ppp_set_notify_phase_callback(pppoe, ppp_notify_phase_cb);
-	pppapi_set_auth(pppoe, PPPAUTHTYPE_MSCHAP_V2, username, password);
+#if PPP_AUTH_SUPPORT
+	ppp_set_auth(pppoe, PPPAUTHTYPE_MSCHAP_V2, username, password);
+#endif /* PPP_AUTH_SUPPORT */
 #if MPPE_SUPPORT
-	pppoe->settings.require_mppe = 1;
+	ppp_set_mppe(pppoe, PPP_MPPE_ENABLE|PPP_MPPE_REFUSE_128);
 #endif /* MPPE_SUPPORT */
 	#if PPP_DEBUG
 	printf("PPPoE ID = %d\n", pppoe->netif->num);
@@ -513,7 +519,7 @@ main(int argc, char **argv)
 	pppapi_connect(pppoe, 0);
 #endif
 
-	/* pppapi_set_auth(ppp2, PPPAUTHTYPE_MSCHAP, username2, password2);
+	/* ppp_set_auth(ppp2, PPPAUTHTYPE_MSCHAP, username2, password2);
 	pppapi_pppoe_open(ppp2, &netif2, NULL, NULL, ppp_link_status_cb, NULL); */
 #if PPPOS_SUPPORT
 	memset(&pppsnetif, 0, sizeof(struct netif));
@@ -536,7 +542,9 @@ main(int argc, char **argv)
 	ppp_set_notify_phase_callback(pppos, ppp_notify_phase_cb);
 
 	ppp_set_listen_time(pppos, 100);
-	pppapi_set_auth(pppos, PPPAUTHTYPE_MSCHAP, username2, password2);
+#if PPP_AUTH_SUPPORT
+	ppp_set_auth(pppos, PPPAUTHTYPE_MSCHAP, username2, password2);
+#endif /* PPP_AUTH_SUPPORT */
 	pppapi_set_default(pppos);
 #if PPP_DEBUG
 	printf("PPPoS ID = %d\n", pppos->netif->num);
@@ -559,6 +567,7 @@ main(int argc, char **argv)
 #if PPP_AUTH_SUPPORT
 		ppp_set_auth_required(pppos, 1);
 #endif /* PPP_AUTH_SUPPORT */
+		ppp_set_silent(pppos, 1);
 		pppapi_listen(pppos);
 	}
 #else /* PPP_SERVER */
@@ -592,13 +601,15 @@ main(int argc, char **argv)
 #endif /* PPPOE_SUPPORT */
 
 		ppp_set_notify_phase_callback(pppl2tp, ppp_notify_phase_cb);
-		pppapi_set_auth(pppl2tp, PPPAUTHTYPE_MSCHAP_V2, username2, password2);
+#if PPP_AUTH_SUPPORT
+		ppp_set_auth(pppl2tp, PPPAUTHTYPE_MSCHAP_V2, username2, password2);
+#endif /* PPP_AUTH_SUPPORT */
 		pppapi_set_default(pppl2tp);
 #if PPP_DEBUG
 		printf("PPPoL2TP ID = %d\n", pppl2tp->netif->num);
 #endif
 #if MPPE_SUPPORT
-		pppl2tp->settings.require_mppe = 1;
+		ppp_set_mppe(pppl2tp, PPP_MPPE_ENABLE);
 #endif /* MPPE_SUPPORT */
 		ppp_connect(pppl2tp, 0);
 	}
