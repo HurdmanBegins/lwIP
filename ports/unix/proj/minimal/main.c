@@ -105,7 +105,7 @@ const char *username = "essai", *password = "aon0viipheehooX";
 #endif
 #if PPPOS_SUPPORT
   ppp_pcb *pppos;
-  sio_fd_t ser;
+  int pppos_fd;
 #endif /* PPPOS_SUPPORT */
 #endif /* PPP_SUPPORT */
 
@@ -328,12 +328,17 @@ static void ppp_link_status_cb(ppp_pcb *pcb, int err_code, void *ctx) {
 	if (err_code != PPPERR_NONE) {
 #if PPPOS_SUPPORT
 		if (pcb == pppos) {
+			sio_fd_t ser;
 #if PPP_SERVER
 			ser = sio_open(3);
 #else /* PPP_SERVER */
 			ser = sio_open(2);
 #endif /* PPP_SERVER */
-			printf("SIO FD = %d\n", ser->fd);
+			if (!ser) {
+				exit(-5);
+			}
+			pppos_fd = ser->fd;
+			printf("PPPoS FD = %d\n", pppos_fd);
 		}
 #endif /* PPPOS_SUPPORT */
 
@@ -351,29 +356,15 @@ static void ppp_link_status_cb(ppp_pcb *pcb, int err_code, void *ctx) {
 	} */
 }
 
-#if 0
-u32_t sio_write(sio_fd_t fd, u8_t *data, u32_t len) {
-  return write(to_pppd[1], data, len);
-}
-
-void sio_read_abort(sio_fd_t fd) {
-}
-
-void sio_input(ppp_pcb *pcb) {
-  u_char buf[1500];
-  int len;
-  len = read(from_pppd[0], buf, 1500);
-  if(len > 0)
-    pppos_input(pcb, buf, len);
-}
-#endif
-
 #endif /* PPP_SUPPORT */
 
 #if PPPOS_SUPPORT
 static u32_t pppos_out(ppp_pcb *pcb, u8_t *data, u32_t len, void *ctx) {
   LWIP_UNUSED_ARG(pcb);
-  return sio_write((sio_fd_t)ctx, data, len);
+  LWIP_UNUSED_ARG(ctx);
+  ssize_t wl;
+  wl = write(pppos_fd, data, len);
+  return wl < 0 ? 0 : wl;
 }
 #endif/* PPPOS_SUPPORT */
 
@@ -527,14 +518,21 @@ main(int argc, char **argv)
 #if PPPOS_SUPPORT
 	memset(&pppsnetif, 0, sizeof(struct netif));
 
+	{
+		sio_fd_t ser;
 #if PPP_SERVER
-	ser = sio_open(3);
-#else
-	ser = sio_open(2);
+		ser = sio_open(3);
+#else /* PPP_SERVER */
+		ser = sio_open(2);
 #endif /* PPP_SERVER */
-	printf("SIO FD = %d\n", ser->fd);
+		if (!ser) {
+			exit(-5);
+		}
+		pppos_fd = ser->fd;
+		printf("PPPoS FD = %d\n", pppos_fd);
+	}
 
-	pppos = pppapi_pppos_create(&pppsnetif, pppos_out, ppp_link_status_cb, ser);
+	pppos = pppapi_pppos_create(&pppsnetif, pppos_out, ppp_link_status_cb, NULL);
 	ppp_set_notify_phase_callback(pppos, ppp_notify_phase_cb);
 
 	ppp_set_listen_time(pppos, 100);
@@ -640,7 +638,7 @@ main(int argc, char **argv)
     struct tapif *tapif, *tapif2;
 #endif
     int ret;
-    int maxfd = 0;
+    int maxfd = -1;
 
     tv.tv_sec = 1;
     tv.tv_usec = 0; /* usec_to; */
@@ -662,9 +660,9 @@ main(int argc, char **argv)
     FD_SET(from_pppd[0], &fdset);
 #endif
 #if PPPOS_SUPPORT
-    if(ser) {
-      FD_SET(ser->fd, &fdset);
-      maxfd = LWIP_MAX(maxfd, ser->fd);
+    if(pppos_fd >= 0) {
+      FD_SET(pppos_fd, &fdset);
+      maxfd = LWIP_MAX(maxfd, pppos_fd);
     }
 #endif /* PPPOS_SUPPORT */
 #endif /* PPP_SUPPORT */
@@ -679,19 +677,14 @@ main(int argc, char **argv)
 #endif
 
 #if PPP_SUPPORT
-#if 0
-      if( FD_ISSET(from_pppd[0], &fdset) )
-        sio_input(ppps);
-#endif
 #if PPPOS_SUPPORT
-      if(pppos && ser && FD_ISSET(ser->fd, &fdset) ) {
+      if(pppos && pppos_fd >= 0 && FD_ISSET(pppos_fd, &fdset) ) {
         u8_t buffer[1024];
         int len;
-        len = sio_read(ser, buffer, 1024);
+        len = read(pppos_fd, buffer, 1024);
 	if(len < 0) {
-	  close(ser->fd);
-	  ser->fd = -1;
-	  ser = NULL;
+	  close(pppos_fd);
+	  pppos_fd = -1;
 	  pppapi_close(pppos, 1);
 	} else {
 #if PPP_INPROC_IRQ_SAFE
